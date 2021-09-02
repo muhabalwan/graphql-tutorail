@@ -1,4 +1,5 @@
 import { GraphQLServer } from 'graphql-yoga'
+import { v4 as uuidv4 } from 'uuid';
 
 // Scalar types = String, Boolean, Int, Float, ID
 // Scalar types is a type that stores a single value
@@ -94,6 +95,13 @@ const typeDefs = `
         user(id: String): User!
         comments: [Comment!]!
     }
+
+    type Mutation {
+        createUser(name: String!, email: String!, age: Int): User!
+        createPost(title: String!, body: String!, author: ID!, published: Boolean!): Post!
+        createComment(text: String!, author: ID!, post: ID!): Comment!
+    }
+
     type User {
         id: ID!
         name: String!
@@ -145,6 +153,57 @@ const resolvers = {
         comments(parent, args, ctx, info) {
             return comments;
         }
+
+
+    },
+    Mutation: {
+        createUser(parent, args, ctx, info) {
+            // CRUD
+            const emailTaken = users.some(user => {
+                return user.email === args.email
+            })
+            if(emailTaken) {
+                throw new Error('User email is already in use!')
+            }
+            const user = {
+                id: uuidv4(),
+                ...args
+
+            }
+            users.push(user)
+            return user
+        },
+        createPost(parent, args, ctx, info) {
+            const userExist = users.some(user => user.id === args.author)
+            if(!userExist) {
+                throw new Error('User not found!')
+            }
+            const post = {
+                id: uuidv4(),
+                ...args
+            }
+            posts.push(post)
+            return post
+        },
+
+        createComment(parent, args, ctx, info) {
+            // author & post 
+            const userExist = users.some(user => user.id === args.author)
+            const postExist = posts.some(post => post.id === args.post)
+            // we only need to assert if user owns the post 
+            if(!postExist) {
+                throw new Error("Post Ids does not exist!")
+            }
+            if(!userExist) {
+                throw new Error("User Ids does not exist!")
+            }
+            const comment = {
+                id: uuidv4(),
+                ...args
+            }
+            comments.push(comment)
+            return comment
+        }
     },
 
     // Those are called Custom Resolver Function
@@ -162,9 +221,12 @@ const resolvers = {
         },
         comments(parent, args, ctx, info) {
             console.log('parent', parent);
-            return comments.filter(comment => {
-                return parent.comments.includes(comment.id)
-            })
+            if(comments && parent.comments) {
+                return comments.filter(comment => {
+                    return parent.comments.includes(comment.id)
+                })
+            }
+            return []
         }
     },
     Comment: {
