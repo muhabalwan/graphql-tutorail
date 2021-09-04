@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 // Scalar types is a type that stores a single value
 
 
-const users = [
+let users = [
     {
         id: "1",
         name: 'abc',
@@ -29,7 +29,7 @@ const users = [
     }
 ]
 
-const posts = [
+let posts = [
     {
         id: "11",
         title: "post one",
@@ -61,7 +61,7 @@ const posts = [
     },
 ]
 
-const comments = [
+let comments = [
     {
         id: "1000",
         text: "comment 1",
@@ -83,7 +83,7 @@ const comments = [
     {
         id: "4000",
         text: "comment 4",
-        author: "2",
+        author: "1",
         post: "33"
     },
 ]
@@ -97,9 +97,28 @@ const typeDefs = `
     }
 
     type Mutation {
-        createUser(name: String!, email: String!, age: Int): User!
-        createPost(title: String!, body: String!, author: ID!, published: Boolean!): Post!
-        createComment(text: String!, author: ID!, post: ID!): Comment!
+        createUser(user: CreateUserInput): User!
+        deleteUser(id: ID!): User!
+        createPost(post: CreatePostInput): Post!
+        createComment(comment: CreateCommentInput): Comment!
+    }
+
+    input CreateUserInput {
+        name: String!
+        email: String!
+    }
+
+    input CreatePostInput {
+        title: String!
+        body: String!
+        author: ID!
+        published: Boolean!
+    }
+
+    input CreateCommentInput {
+        text: String!
+        author: ID!
+        post: ID!
     }
 
     type User {
@@ -160,27 +179,44 @@ const resolvers = {
         createUser(parent, args, ctx, info) {
             // CRUD
             const emailTaken = users.some(user => {
-                return user.email === args.email
+                return user.email === args.user.email
             })
             if(emailTaken) {
                 throw new Error('User email is already in use!')
             }
             const user = {
                 id: uuidv4(),
-                ...args
+                ...args.user
 
             }
             users.push(user)
             return user
         },
+        deleteUser(parent, args, ctx, info) { 
+            const userIndex = users.findIndex(user => user.id === args.id);
+            if(userIndex === -1) {
+                throw new Error("User not found!")
+            }
+            const deletedUsers = users.splice(userIndex, 1);
+
+            posts = posts.filter(post => {
+                const match = post.author === args.id
+                if(match) {
+                    comments = comments.filter(comment => comment.post !== post.id)
+                }
+                return !match
+            })
+            comments = comments.filter((comment) => comment.author !== args.id)
+            return deletedUsers[0];
+        },
         createPost(parent, args, ctx, info) {
-            const userExist = users.some(user => user.id === args.author)
+            const userExist = users.some(user => user.id === args.post.author)
             if(!userExist) {
                 throw new Error('User not found!')
             }
             const post = {
                 id: uuidv4(),
-                ...args
+                ...args.post
             }
             posts.push(post)
             return post
@@ -188,8 +224,8 @@ const resolvers = {
 
         createComment(parent, args, ctx, info) {
             // author & post 
-            const userExist = users.some(user => user.id === args.author)
-            const postExist = posts.some(post => post.id === args.post)
+            const userExist = users.some(user => user.id === args.comment.author)
+            const postExist = posts.some(post => post.id === args.comment.post)
             // we only need to assert if user owns the post 
             if(!postExist) {
                 throw new Error("Post Ids does not exist!")
@@ -199,7 +235,7 @@ const resolvers = {
             }
             const comment = {
                 id: uuidv4(),
-                ...args
+                ...args.comment
             }
             comments.push(comment)
             return comment
