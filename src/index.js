@@ -88,64 +88,6 @@ let comments = [
     },
 ]
 // Type defintions (schema)
-const typeDefs = `
-    type Query {
-        users(query: String): [User!]!
-        posts(query: String): [Post!]!
-        user(id: String): User!
-        comments: [Comment!]!
-    }
-
-    type Mutation {
-        createUser(user: CreateUserInput): User!
-        deleteUser(id: ID!): User!
-        createPost(post: CreatePostInput): Post!
-        deletePost(id: ID!): Post!
-        createComment(comment: CreateCommentInput): Comment!
-        deleteComment(id: ID!): Comment! 
-    }
-
-    input CreateUserInput {
-        name: String!
-        email: String!
-    }
-
-    input CreatePostInput {
-        title: String!
-        body: String!
-        author: ID!
-        published: Boolean!
-    }
-
-    input CreateCommentInput {
-        text: String!
-        author: ID!
-        post: ID!
-    }
-
-    type User {
-        id: ID!
-        name: String!
-        email: String!
-        agent: Int
-        posts: [Post!]!
-        comments: [Comment]!
-    }
-
-    type Post {
-        id: ID!
-        title: String!
-        body: String!
-        author: User!
-        published: Boolean!
-    }
-    type Comment {
-        id: ID!
-        text: String!
-        author: User!
-        post: Post!
-    }
-`
 // Resolver is a collection of functions that generate response for a GraphQL query. In simple terms, a resolver acts as a GraphQL query handler. 
 // Every resolver function in a GraphQL schema accepts four positional arguments as given below − fieldName:(root, args, context, info) => { result }
 const resolvers = {
@@ -303,7 +245,7 @@ const resolvers = {
 }
 
 
-const server = new GraphQLServer({ typeDefs, resolvers });
+const server = new GraphQLServer({ typeDefs: "./src/schema.graphql", resolvers });
 
 server.start(() => {
     console.log('Server is up !!')
