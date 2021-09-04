@@ -100,7 +100,9 @@ const typeDefs = `
         createUser(user: CreateUserInput): User!
         deleteUser(id: ID!): User!
         createPost(post: CreatePostInput): Post!
+        deletePost(id: ID!): Post!
         createComment(comment: CreateCommentInput): Comment!
+        deleteComment(id: ID!): Comment! 
     }
 
     input CreateUserInput {
@@ -181,7 +183,7 @@ const resolvers = {
             const emailTaken = users.some(user => {
                 return user.email === args.user.email
             })
-            if(emailTaken) {
+            if (emailTaken) {
                 throw new Error('User email is already in use!')
             }
             const user = {
@@ -192,16 +194,16 @@ const resolvers = {
             users.push(user)
             return user
         },
-        deleteUser(parent, args, ctx, info) { 
+        deleteUser(parent, args, ctx, info) {
             const userIndex = users.findIndex(user => user.id === args.id);
-            if(userIndex === -1) {
+            if (userIndex === -1) {
                 throw new Error("User not found!")
             }
             const deletedUsers = users.splice(userIndex, 1);
 
             posts = posts.filter(post => {
                 const match = post.author === args.id
-                if(match) {
+                if (match) {
                     comments = comments.filter(comment => comment.post !== post.id)
                 }
                 return !match
@@ -211,7 +213,7 @@ const resolvers = {
         },
         createPost(parent, args, ctx, info) {
             const userExist = users.some(user => user.id === args.post.author)
-            if(!userExist) {
+            if (!userExist) {
                 throw new Error('User not found!')
             }
             const post = {
@@ -221,16 +223,28 @@ const resolvers = {
             posts.push(post)
             return post
         },
-
+        deletePost(parents, args, ctx, info) {
+            const postIndex = posts.findIndex((post, ) => {
+                return post.id === args.id
+            })
+            
+            if(postIndex === -1) {
+                throw new Error("Post does not exist!")
+            }
+            const matchedPost = posts[postIndex];
+            posts = posts.filter(post => post.id !== args.id)
+            comments = comments.filter(comment => comment.post !== args.id)
+            return  ;
+        },
         createComment(parent, args, ctx, info) {
             // author & post 
             const userExist = users.some(user => user.id === args.comment.author)
             const postExist = posts.some(post => post.id === args.comment.post)
             // we only need to assert if user owns the post 
-            if(!postExist) {
+            if (!postExist) {
                 throw new Error("Post Ids does not exist!")
             }
-            if(!userExist) {
+            if (!userExist) {
                 throw new Error("User Ids does not exist!")
             }
             const comment = {
@@ -239,6 +253,15 @@ const resolvers = {
             }
             comments.push(comment)
             return comment
+        },
+        deleteComment(parent, args, ctx, info) {
+            const commentIndex = comments.findIndex(comment => comment.id === args.id)
+             if(commentIndex === -1) {
+                 throw new Error("Comment does not exist!")
+             }
+             const matchComment = comments[commentIndex];
+             comments = comments.filter(comment => comment.id !== args.id)
+             return matchComment
         }
     },
 
@@ -257,7 +280,7 @@ const resolvers = {
         },
         comments(parent, args, ctx, info) {
             console.log('parent', parent);
-            if(comments && parent.comments) {
+            if (comments && parent.comments) {
                 return comments.filter(comment => {
                     return parent.comments.includes(comment.id)
                 })
