@@ -3,21 +3,21 @@ let users = [
         id: "1",
         name: 'abc',
         email: '123',
-        agent: "123",
+        age: "123",
         comments: ["1000", "2000"]
     },
     {
         id: "2",
         name: 'defc',
         email: '345',
-        agent: "345",
+        age: "345",
         comments: ["3000", "4000"]
     },
     {
         id: "3",
         name: 'hij',
         email: '567',
-        agent: "567",
+        age: "567",
         comments: []
     }
 ]
