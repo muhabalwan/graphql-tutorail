@@ -1,10 +1,27 @@
-
 type Query {
     users(query: String): [User!]!
     posts(query: String): [Post!]!
     user(id: String): User!
     comments: [Comment!]!
 }
+
+type Mutation {
+    createUser(user: CreateUserInput): User!
+    deleteUser(id: ID!): User!
+    updateUser(id: ID!, updateUserInput: UpdateUserInput): User!
+    createPost(post: CreatePostInput): Post!
+    deletePost(id: ID!): Post!
+    updatePost(id: ID!, updatePostInput: UpdatePostInput): Post!
+    createComment(comment: CreateCommentInput): Comment!
+    deleteComment(id: ID!): Comment! 
+    updateComment(id: ID!, updateCommentInput: UpdateCommentInput): Comment!
+}
+
+type Subscription {
+    count: Int!
+    comment(postId: ID!): Comment!
+}
+
 input UpdateUserInput {
     name: String
     email: String
@@ -24,17 +41,6 @@ input UpdateCommentInput {
     post: ID,
 }
 
-type Mutation {
-    createUser(user: CreateUserInput): User!
-    deleteUser(id: ID!): User!
-    updateUser(id: ID!, updateUserInput: UpdateUserInput): User!
-    createPost(post: CreatePostInput): Post!
-    deletePost(id: ID!): Post!
-    updatePost(id: ID!, updatePostInput: UpdatePostInput): Post!
-    createComment(comment: CreateCommentInput): Comment!
-    deleteComment(id: ID!): Comment! 
-    updateComment(id: ID!, updateCommentInput: UpdateCommentInput): Comment!
-}
 
 input CreateUserInput {
     name: String!

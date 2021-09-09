@@ -1,7 +1,8 @@
-import { GraphQLServer } from 'graphql-yoga'
+import { GraphQLServer, PubSub } from 'graphql-yoga'
 import db from './db'
 import Query from './resolvers/Query'
-import Mutations from './resolvers/Mutation';
+import Mutation from './resolvers/Mutation';
+import Subscription from './resolvers/Subscription';
 import Post from './resolvers/Post';
 import User from './resolvers/User';
 import Comment from './resolvers/Comment';
@@ -12,18 +13,22 @@ import Comment from './resolvers/Comment';
 // Resolver is a collection of functions that generate response for a GraphQL query. In simple terms, a resolver acts as a GraphQL query handler. 
 // Every resolver function in a GraphQL schema accepts four positional arguments as given below − fieldName:(root, args, context, info) => { result }
 
+const pubSub = new PubSub()
+
 const server = new GraphQLServer({
     typeDefs: "./src/schema.graphql",
     resolvers: {
-        Query: Query,
-        Mutation: Mutations,
-        // Those are called Custom Resolver Function
-        Post: Post,
-        User: User,
-        Comment: Comment
+        Query,
+        Mutation,
+        Subscription,
+        // Custom Resolver Function
+        Post,
+        User,
+        Comment
     },
     context: {
-        db
+        db,
+        pubSub
     }
 });
 

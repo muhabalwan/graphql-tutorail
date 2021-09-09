@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 const Mutations = {
     createUser(parent, args, { db }, info) {
         // CRUD
@@ -99,14 +100,14 @@ const Mutations = {
             post.body = updatePostInput.body;
         if (updatePostInput.author && updatePostInput.author !== "undefined") {
             const authorExist = users.some(user => user.id === updatePostInput.author)
-            if(!authorExist) {
+            if (!authorExist) {
                 throw new Error("User does not exist")
             }
             post.author = updatePostInput.author
         }
         return post
     },
-    createComment(parent, args, { db }, info) {
+    createComment(parent, args, { db, pubSub }, info) {
         // author & post 
         const userExist = db.users.some(user => user.id === args.comment.author)
         const postExist = db.posts.some(post => post.id === args.comment.post)
@@ -122,6 +123,8 @@ const Mutations = {
             ...args.comment
         }
         db.comments.push(comment)
+        console.log('args.comment.post -->', args.comment.post)
+        pubSub.publish(`comment ${args.comment.post}`, { comment: comment })
         return comment
     },
     deleteComment(parent, args, { db }, info) {
@@ -136,7 +139,7 @@ const Mutations = {
     updateComment(parent, args, { db }, info) {
         const { id, updateCommentInput } = args
         let comment = db.comments.find(comment => comment.id === id)
-        if(!comment) {
+        if (!comment) {
             throw new Error("comment not found!")
         }
         comment.text = updateCommentInput.text;
