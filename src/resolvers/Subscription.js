@@ -12,7 +12,7 @@ const Subscription = {
     },
     post: {
         subscribe(parnet, args, ctx, info) {
-            const { db, pubSub } = ctx
+            const { pubSub } = ctx
             return pubSub.asyncIterator("post")
         }
     }

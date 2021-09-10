@@ -70,14 +70,17 @@ const Mutations = {
         console.log('args.post.publish', args.post.published)
         if (args.post.published === true) {
             pubSub.publish("post", {
-                post: post
+                post: {
+                    mutation: "CREATE_POST",
+                    data: post
+                }
             })
         }
         db.posts.push(post)
 
         return post
     },
-    deletePost(parents, args, { db }, info) {
+    deletePost(parents, args, { db, pubSub }, info) {
         const postIndex = db.posts.findIndex((post,) => {
             return post.id === args.id
         })
@@ -88,6 +91,16 @@ const Mutations = {
         const matchedPost = db.posts[postIndex];
         db.posts = db.posts.filter(post => post.id !== args.id)
         db.comments = db.comments.filter(comment => comment.post !== args.id)
+        if(matchedPost.published) {
+            console.log("matchedPost.published", matchedPost, typeof matchedPost)
+            pubSub.publish("post", {
+                post: {
+                    mutation: "DELETED",
+                    data: matchedPost      
+                }
+            })
+
+        }
         return matchedPost;
     },
     updatePost(parent, args, { db }, info) {
