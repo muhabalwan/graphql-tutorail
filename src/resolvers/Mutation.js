@@ -92,7 +92,6 @@ const Mutations = {
         db.posts = db.posts.filter(post => post.id !== args.id)
         db.comments = db.comments.filter(comment => comment.post !== args.id)
         if(matchedPost.published) {
-            console.log("matchedPost.published", matchedPost, typeof matchedPost)
             pubSub.publish("post", {
                 post: {
                     mutation: "DELETED",
